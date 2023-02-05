@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
+import mobi.omegacentauri.giantheart.display.SansBold;
 
 public class BigTextView extends View {
     RectF bounds = new RectF();
@@ -29,7 +30,7 @@ public class BigTextView extends View {
         super(context, attrs);
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        miniFont = new SansBlackDigitsColon();
+        miniFont = new SansBold();
 
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(Color.WHITE);

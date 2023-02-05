@@ -28,8 +28,8 @@ public abstract class DemoSensorActivity extends Activity {
     public static final String EXTRAS_SENSOR_UUID = "SERVICE_UUID";
 
     private BleService bleService;
-    private String serviceUuid;
-    private String deviceAddress;
+    protected String serviceUuid;
+    protected String deviceAddress;
 
     // Handles various events fired by the Service.
     // ACTION_GATT_CONNECTED: connected to a GATT server.

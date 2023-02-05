@@ -5,11 +5,13 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 
 import mobi.omegacentauri.giantheart.R;
@@ -23,8 +25,15 @@ public class HeartRateActivity extends DemoSensorActivity {
 	private final static String TAG = HeartRateActivity.class
 			.getSimpleName();
 
+	static public long lastValidTime;
+	Handler timeoutHandler;
+	static final long initialTimeout = 20000;
+	static final long periodicTimeout = 10000;
+	boolean works;
+
 	private BigTextView bigText;
 	private SharedPreferences options;
+	private Runnable periodicTimeoutRunnable;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -37,8 +46,33 @@ public class HeartRateActivity extends DemoSensorActivity {
 		else
 			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		bigText = (BigTextView) findViewById(R.id.heartrate);
-		bigText.setText("0");
-		Log.v("hrshow","onCreate-");
+		bigText.setText(" ? ");
+		works = false;
+		timeoutHandler = new Handler();
+		periodicTimeoutRunnable = new Runnable() {
+			@Override
+			public void run() {
+				bigText.setText(" ? ");
+				timeoutHandler.postDelayed(periodicTimeoutRunnable, periodicTimeout);
+			}
+		};
+	}
+
+	void updateCache(boolean state) {
+		String oldAddress = options.getString(Options.PREF_DEVICE_ADDRESS, "");
+		if (!state) {
+			if (oldAddress.length() != 0)
+				options.edit().putString(Options.PREF_DEVICE_ADDRESS, "").apply();
+		}
+		else {
+			String oldService = options.getString(Options.PREF_SERVICE, "");
+			if (oldAddress.equals(deviceAddress) && oldService.equals(serviceUuid))
+				return;
+			SharedPreferences.Editor ed = options.edit();
+			ed.putString(Options.PREF_DEVICE_ADDRESS, deviceAddress);
+			ed.putString(Options.PREF_SERVICE, serviceUuid);
+			ed.apply();
+		}
 	}
 
 	public boolean isTV() {
@@ -122,8 +156,24 @@ public class HeartRateActivity extends DemoSensorActivity {
 			final BleHeartRateSensor heartSensor = (BleHeartRateSensor) sensor;
 			int hr = (int)heartSensor.getData()[0];
 			bigText.setText(""+hr);
-			Log.v("hrshow","rec "+hr);
+			lastValidTime = System.currentTimeMillis();
+			updateCache(true);
+			timeoutHandler.removeCallbacksAndMessages(null);
+			timeoutHandler.postDelayed(periodicTimeoutRunnable, periodicTimeout);
 		}
+	}
+
+	@Override
+	public void onBackPressed() {
+		updateCache(false);
+		super.onBackPressed();
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+
+		timeoutHandler.removeCallbacksAndMessages(null);
 	}
 
 	@Override
@@ -132,5 +182,15 @@ public class HeartRateActivity extends DemoSensorActivity {
 
 		setOrientation();
 		setFullScreen();
+
+		timeoutHandler.removeCallbacksAndMessages(null);
+		timeoutHandler.postDelayed(new Runnable() {
+			@Override
+			public void run() {
+				Toast.makeText(HeartRateActivity.this, "Cannot connect to heart rate", Toast.LENGTH_LONG).show();
+				updateCache(false);
+				finish();
+			}
+		}, initialTimeout);
 	}
 }

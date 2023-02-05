@@ -2,6 +2,7 @@ package mobi.omegacentauri.giantheart.adapters;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,8 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 
 import mobi.omegacentauri.giantheart.R;
@@ -41,6 +44,20 @@ public class BleDevicesAdapter extends BaseAdapter {
 
     public void clear() {
         leDevices.clear();
+    }
+
+    @Override
+    public void notifyDataSetChanged() {
+        Collections.sort(leDevices,new Comparator<BluetoothDevice>() {
+            @Override
+            public int compare(BluetoothDevice a, BluetoothDevice b) {
+                return rssiMap.get(b) - rssiMap.get(a);
+            }
+        });
+
+        super.notifyDataSetChanged();
+
+
     }
 
     @Override

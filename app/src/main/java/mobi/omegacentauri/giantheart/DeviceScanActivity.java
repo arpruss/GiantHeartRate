@@ -26,9 +26,11 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
@@ -45,6 +47,7 @@ import java.io.InputStreamReader;
 import mobi.omegacentauri.giantheart.adapters.BleDevicesAdapter;
 import mobi.omegacentauri.giantheart.display.HeartRateActivity;
 import mobi.omegacentauri.giantheart.display.DemoSensorActivity;
+import mobi.omegacentauri.giantheart.display.Options;
 import mobi.omegacentauri.giantheart.sensor.BleHeartRateSensor;
 
 /**
@@ -58,6 +61,7 @@ public class DeviceScanActivity extends ListActivity {
     private BleDevicesAdapter leDeviceListAdapter;
     private BluetoothAdapter bluetoothAdapter;
     private Scanner scanner;
+    private SharedPreferences options;
 
     boolean haveLocationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -88,6 +92,15 @@ public class DeviceScanActivity extends ListActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        options = PreferenceManager.getDefaultSharedPreferences(this);
+
+        String oldAddress = options.getString(Options.PREF_DEVICE_ADDRESS, "");
+        if (oldAddress.length()>0) {
+            String oldService = options.getString(Options.PREF_SERVICE, "");
+            if (oldService.length()>0)
+                monitor(oldAddress,oldService);
+        }
 
         if (!haveLocationPermission()) {
             Log.v("hrshow", "requesting");
@@ -244,16 +257,20 @@ public class DeviceScanActivity extends ListActivity {
         if (device == null)
             return;
 
-        final Intent demoIntent = new Intent();
-        demoIntent.setClass(this, HeartRateActivity.class);
-        demoIntent.putExtra(DemoSensorActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
-        demoIntent.putExtra(DemoSensorActivity.EXTRAS_SENSOR_UUID, BleHeartRateSensor.getServiceUUIDString());
-        startActivity(demoIntent);
+        monitor(device.getAddress(),BleHeartRateSensor.getServiceUUIDString());
 
 /*        final Intent intent = new Intent(this, DeviceServicesActivity.class);
         intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_NAME, device.getName());
         intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress()); */
         //startActivity(intent);
+    }
+
+    private void monitor(String address, String service) {
+        final Intent demoIntent = new Intent();
+        demoIntent.setClass(this, HeartRateActivity.class);
+        demoIntent.putExtra(DemoSensorActivity.EXTRAS_DEVICE_ADDRESS, address);
+        demoIntent.putExtra(DemoSensorActivity.EXTRAS_SENSOR_UUID, service);
+        startActivity(demoIntent);
     }
 
     private void init() {
