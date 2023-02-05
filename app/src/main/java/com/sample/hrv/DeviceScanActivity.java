@@ -36,6 +36,9 @@ import android.widget.Toast;
 
 import com.sample.hrv.R;
 import com.sample.hrv.adapters.BleDevicesAdapter;
+import com.sample.hrv.demo.DemoHeartRateSensorActivity;
+import com.sample.hrv.demo.DemoSensorActivity;
+import com.sample.hrv.sensor.BleHeartRateSensor;
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
@@ -194,10 +197,16 @@ public class DeviceScanActivity extends ListActivity {
         if (device == null)
             return;
 
-        final Intent intent = new Intent(this, DeviceServicesActivity.class);
+        final Intent demoIntent = new Intent();
+        demoIntent.setClass(this, DemoHeartRateSensorActivity.class);
+        demoIntent.putExtra(DemoSensorActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+        demoIntent.putExtra(DemoSensorActivity.EXTRAS_SENSOR_UUID, BleHeartRateSensor.getServiceUUIDString());
+        startActivity(demoIntent);
+
+/*        final Intent intent = new Intent(this, DeviceServicesActivity.class);
         intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_NAME, device.getName());
-        intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
-        startActivity(intent);
+        intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress()); */
+        //startActivity(intent);
     }
 
     private void init() {

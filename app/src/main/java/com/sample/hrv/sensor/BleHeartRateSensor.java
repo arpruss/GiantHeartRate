@@ -81,7 +81,7 @@ public class BleHeartRateSensor extends BleSensor<float[]> {
 	@Override
 	public String getDataString() {
 		final float[] data = getData();
-		return "heart rate=" + data[0] + "\ninterval=" + data[1];
+		return "heart rate=" + data[0];
 	}
 
 	@Override

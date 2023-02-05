@@ -63,7 +63,7 @@ public class DeviceServicesActivity extends Activity {
     private TextView connectionState;
     private TextView dataField;
     private TextView heartRateField;
-    private TextView intervalField;
+//    private TextView intervalField;
     private Button demoButton;
     
     private ExpandableListView gattServicesList;
@@ -124,7 +124,6 @@ public class DeviceServicesActivity extends Activity {
 				enableHeartRateSensor();
             } else if (BleService.ACTION_DATA_AVAILABLE.equals(action)) {
 				displayData(intent.getStringExtra(BleService.EXTRA_SERVICE_UUID), intent.getStringExtra(BleService.EXTRA_TEXT));
-
             }
         }
     };
@@ -214,7 +213,7 @@ public class DeviceServicesActivity extends Activity {
         gattServicesList.setAdapter((SimpleExpandableListAdapter) null);
         dataField.setText(R.string.no_data);
 		heartRateField.setText(R.string.no_data);
-		intervalField.setText(R.string.no_data);
+		//intervalField.setText(R.string.no_data);
     }
 
 	public void setServiceListener(OnServiceItemClickListener listener) {
