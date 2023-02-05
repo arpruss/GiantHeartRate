@@ -5,7 +5,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "com.sample.hrv"
+        applicationId "mobi.omegacentauri.giantheart"
         minSdkVersion 18
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 30

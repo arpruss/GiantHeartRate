@@ -1,4 +1,4 @@
-package com.sample.hrv.adapters;
+package mobi.omegacentauri.giantheart.adapters;
 
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
@@ -16,12 +16,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import com.sample.hrv.R;
-import com.sample.hrv.info.BleInfoService;
-import com.sample.hrv.info.BleInfoServices;
-import com.sample.hrv.sensor.BleHeartRateSensor;
-import com.sample.hrv.sensor.BleSensor;
-import com.sample.hrv.sensor.BleSensors;
+import mobi.omegacentauri.giantheart.R;
+import mobi.omegacentauri.giantheart.info.BleInfoService;
+import mobi.omegacentauri.giantheart.info.BleInfoServices;
+import mobi.omegacentauri.giantheart.sensor.BleHeartRateSensor;
+import mobi.omegacentauri.giantheart.sensor.BleSensor;
+import mobi.omegacentauri.giantheart.sensor.BleSensors;
 
 /**
  * Created by steven on 9/5/13.

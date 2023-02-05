@@ -1,11 +1,10 @@
-package com.sample.hrv.demo;
+package mobi.omegacentauri.giantheart.display;
 
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
-import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;

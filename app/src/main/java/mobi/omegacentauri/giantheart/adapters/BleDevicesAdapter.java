@@ -1,4 +1,4 @@
-package com.sample.hrv.adapters;
+package mobi.omegacentauri.giantheart.adapters;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -11,7 +11,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import com.sample.hrv.R;
+import mobi.omegacentauri.giantheart.R;
 
 /** Adapter for holding devices found through scanning.
  *  Created by steven on 9/5/13.

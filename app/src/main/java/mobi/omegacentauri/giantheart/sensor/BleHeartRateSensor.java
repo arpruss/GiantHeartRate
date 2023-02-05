@@ -1,10 +1,8 @@
-package com.sample.hrv.sensor;
+package mobi.omegacentauri.giantheart.sensor;
 
 
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.util.Log;
-
-import static java.lang.Math.pow;
 
 /**
  * Created by  by olli on 3/28/2014.

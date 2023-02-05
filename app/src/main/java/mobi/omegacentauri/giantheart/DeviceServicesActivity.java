@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.sample.hrv;
+package mobi.omegacentauri.giantheart;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -36,17 +36,18 @@ import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
+import mobi.omegacentauri.giantheart.R;
+
 import java.util.List;
 
 
-import com.sample.hrv.R;
-import com.sample.hrv.adapters.BleServicesAdapter;
-import com.sample.hrv.adapters.BleServicesAdapter.OnServiceItemClickListener;
-import com.sample.hrv.demo.DemoHeartRateSensorActivity;
-import com.sample.hrv.demo.DemoSensorActivity;
-import com.sample.hrv.sensor.BleHeartRateSensor;
-import com.sample.hrv.sensor.BleSensor;
-import com.sample.hrv.sensor.BleSensors;
+import mobi.omegacentauri.giantheart.adapters.BleServicesAdapter;
+import mobi.omegacentauri.giantheart.adapters.BleServicesAdapter.OnServiceItemClickListener;
+import mobi.omegacentauri.giantheart.display.HeartRateActivity;
+import mobi.omegacentauri.giantheart.display.DemoSensorActivity;
+import mobi.omegacentauri.giantheart.sensor.BleHeartRateSensor;
+import mobi.omegacentauri.giantheart.sensor.BleSensor;
+import mobi.omegacentauri.giantheart.sensor.BleSensors;
 
 /**
  * For a given BLE device, this Activity provides the user interface to connect, display data,
@@ -170,7 +171,7 @@ public class DeviceServicesActivity extends Activity {
 
             final Class<? extends DemoSensorActivity> demoClass;
             if (sensor instanceof BleHeartRateSensor)
-                demoClass = DemoHeartRateSensorActivity.class;
+                demoClass = HeartRateActivity.class;
             else
                 return;
 

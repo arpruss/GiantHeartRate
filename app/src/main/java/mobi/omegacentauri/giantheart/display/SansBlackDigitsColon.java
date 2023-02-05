@@ -1,4 +1,4 @@
-package com.sample.hrv.demo;
+package mobi.omegacentauri.giantheart.display;
 
 import android.graphics.Path;
 

@@ -1,10 +1,8 @@
-package com.sample.hrv.demo;
+package mobi.omegacentauri.giantheart.display;
 
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.opengl.GLSurfaceView;
-import android.opengl.GLU;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -12,32 +10,17 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.TextView;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
-
-import javax.microedition.khronos.egl.EGL10;
-import javax.microedition.khronos.egl.EGLConfig;
-import javax.microedition.khronos.opengles.GL10;
-
-import android.opengl.GLSurfaceView.Renderer;
-
-import android.content.Context;
-import android.os.SystemClock;
 
 
-import com.sample.hrv.R;
-import com.sample.hrv.sensor.BleHeartRateSensor;
-import com.sample.hrv.sensor.BleSensor;
+import mobi.omegacentauri.giantheart.R;
+import mobi.omegacentauri.giantheart.sensor.BleHeartRateSensor;
+import mobi.omegacentauri.giantheart.sensor.BleSensor;
 
 /**
  * Created by olli on 3/28/14.
  */
-public class DemoHeartRateSensorActivity extends DemoSensorActivity {
-	private final static String TAG = DemoHeartRateSensorActivity.class
+public class HeartRateActivity extends DemoSensorActivity {
+	private final static String TAG = HeartRateActivity.class
 			.getSimpleName();
 
 	private BigTextView bigText;

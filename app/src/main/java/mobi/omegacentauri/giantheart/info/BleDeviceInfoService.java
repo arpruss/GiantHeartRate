@@ -1,4 +1,4 @@
-package com.sample.hrv.info;
+package mobi.omegacentauri.giantheart.info;
 
 import java.util.HashMap;
 

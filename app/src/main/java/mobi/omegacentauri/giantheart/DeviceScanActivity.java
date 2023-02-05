@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package com.sample.hrv;
+package mobi.omegacentauri.giantheart;
 
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Html;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,11 +37,15 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.sample.hrv.R;
-import com.sample.hrv.adapters.BleDevicesAdapter;
-import com.sample.hrv.demo.DemoHeartRateSensorActivity;
-import com.sample.hrv.demo.DemoSensorActivity;
-import com.sample.hrv.sensor.BleHeartRateSensor;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import mobi.omegacentauri.giantheart.adapters.BleDevicesAdapter;
+import mobi.omegacentauri.giantheart.display.HeartRateActivity;
+import mobi.omegacentauri.giantheart.display.DemoSensorActivity;
+import mobi.omegacentauri.giantheart.sensor.BleHeartRateSensor;
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
@@ -132,6 +139,9 @@ public class DeviceScanActivity extends ListActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_info:
+                showLicenses();
+                break;
             case R.id.menu_scan:
                 leDeviceListAdapter.clear();
                 if (scanner == null) {
@@ -191,6 +201,43 @@ public class DeviceScanActivity extends ListActivity {
         }
     }
 
+    static public String getAssetFile(Context context, String assetName) {
+        try {
+            return getStreamFile(context.getAssets().open(assetName));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            return "";
+        }
+    }
+
+    static private String getStreamFile(InputStream stream) {
+        BufferedReader reader;
+        try {
+            reader = new BufferedReader(new InputStreamReader(stream));
+
+            String text = "";
+            String line;
+            while (null != (line=reader.readLine()))
+                text = text + line;
+            return text;
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            return "";
+        }
+    }
+
+    public void showLicenses() {
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle("Licenses and copyrights");
+        alertDialog.setMessage(Html.fromHtml(getAssetFile(this, "license.html")));
+        alertDialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {} });
+        alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            public void onCancel(DialogInterface dialog) {} });
+        alertDialog.show();
+    }
+
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         final BluetoothDevice device = leDeviceListAdapter.getDevice(position);
@@ -198,7 +245,7 @@ public class DeviceScanActivity extends ListActivity {
             return;
 
         final Intent demoIntent = new Intent();
-        demoIntent.setClass(this, DemoHeartRateSensorActivity.class);
+        demoIntent.setClass(this, HeartRateActivity.class);
         demoIntent.putExtra(DemoSensorActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
         demoIntent.putExtra(DemoSensorActivity.EXTRAS_SENSOR_UUID, BleHeartRateSensor.getServiceUUIDString());
         startActivity(demoIntent);

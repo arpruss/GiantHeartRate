@@ -5,7 +5,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-    <com.sample.hrv.demo.BigTextView
+    <mobi.omegacentauri.giantheart.display.BigTextView
         android:id="@+id/heartrate"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.sample.hrv;
+package mobi.omegacentauri.giantheart;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -32,8 +32,8 @@ import android.util.Log;
 
 import java.util.List;
 
-import com.sample.hrv.sensor.BleSensor;
-import com.sample.hrv.sensor.BleSensors;
+import mobi.omegacentauri.giantheart.sensor.BleSensor;
+import mobi.omegacentauri.giantheart.sensor.BleSensors;
 
 
 /**

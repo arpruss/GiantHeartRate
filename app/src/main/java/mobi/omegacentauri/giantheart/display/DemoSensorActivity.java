@@ -1,8 +1,8 @@
-package com.sample.hrv.demo;
+package mobi.omegacentauri.giantheart.display;
 
-import com.sample.hrv.BleService;
-import com.sample.hrv.sensor.BleSensor;
-import com.sample.hrv.sensor.BleSensors;
+import mobi.omegacentauri.giantheart.BleService;
+import mobi.omegacentauri.giantheart.sensor.BleSensor;
+import mobi.omegacentauri.giantheart.sensor.BleSensors;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;

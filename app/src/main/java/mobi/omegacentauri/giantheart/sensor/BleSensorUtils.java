@@ -1,4 +1,4 @@
-package com.sample.hrv.sensor;
+package mobi.omegacentauri.giantheart.sensor;
 
 import android.bluetooth.BluetoothGattCharacteristic;
 

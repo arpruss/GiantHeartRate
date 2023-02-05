@@ -1,4 +1,4 @@
-package com.sample.hrv.info;
+package mobi.omegacentauri.giantheart.info;
 
 /**
  * Created by steven on 10/7/13.

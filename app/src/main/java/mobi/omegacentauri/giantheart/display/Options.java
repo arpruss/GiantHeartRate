@@ -1,4 +1,4 @@
-package com.sample.hrv.demo;
+package mobi.omegacentauri.giantheart.display;
 
 public class Options {
     public static final String PREF_SCREEN_ON = "screenOn";

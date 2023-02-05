@@ -1,4 +1,4 @@
-package com.sample.hrv;
+package mobi.omegacentauri.giantheart;
 
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
@@ -8,7 +8,7 @@ import android.bluetooth.BluetoothProfile;
 
 import java.util.LinkedList;
 
-import com.sample.hrv.sensor.BleSensor;
+import mobi.omegacentauri.giantheart.sensor.BleSensor;
 
 
 /**
