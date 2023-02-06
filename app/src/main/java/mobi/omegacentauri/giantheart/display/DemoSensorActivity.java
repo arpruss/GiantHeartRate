@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 
 /**
@@ -42,8 +43,8 @@ public abstract class DemoSensorActivity extends Activity {
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (BleService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                //TODO: show toast
-                finish();
+                Log.e("hrshow", "disconnected");
+                bleService.connect(deviceAddress);
             } else if (BleService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 final BleSensor<?> sensor = BleSensors.getSensor(serviceUuid);
                 bleService.enableSensor(sensor, true);
@@ -70,8 +71,10 @@ public abstract class DemoSensorActivity extends Activity {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            Log.e("hrshow", "onServiceDisconnected");
+            Toast.makeText(DemoSensorActivity.this,"Service disconnected", Toast.LENGTH_LONG).show();
+            //bleService.connect(deviceAddress);
             bleService = null;
-            //TODO: show toast
             finish();
         }
     };
@@ -86,7 +89,7 @@ public abstract class DemoSensorActivity extends Activity {
         deviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
         serviceUuid = intent.getStringExtra(EXTRAS_SENSOR_UUID);
 
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        //getActionBar().setDisplayHomeAsUpEnabled(true);
 
         final Intent gattServiceIntent = new Intent(this, BleService.class);
         bindService(gattServiceIntent, serviceConnection, BIND_AUTO_CREATE);
@@ -99,7 +102,10 @@ public abstract class DemoSensorActivity extends Activity {
         registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
         if (bleService != null) {
             final boolean result = bleService.connect(deviceAddress);
-            Log.d(TAG, "Connect request result=" + result);
+            Log.v("hrshow", "Connect request result=" + result);
+        }
+        else {
+            Log.e("hrShow", "null bleService");
         }
     }
 
@@ -116,6 +122,7 @@ public abstract class DemoSensorActivity extends Activity {
         bleService = null;
     }
 
+    /*
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch(item.getItemId()) {
@@ -125,6 +132,7 @@ public abstract class DemoSensorActivity extends Activity {
         }
         return super.onOptionsItemSelected(item);
     }
+     */
 
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();

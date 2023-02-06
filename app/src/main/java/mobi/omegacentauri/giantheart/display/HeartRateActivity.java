@@ -134,13 +134,11 @@ public class HeartRateActivity extends DemoSensorActivity {
 
 		View dv = w.getDecorView();
 
-		Log.v("hrshow", "fs test");
 		if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) {
 			dv.setSystemUiVisibility(fs ? View.GONE : View.VISIBLE);
 		} else if (Build.VERSION.SDK_INT >= 19) {
 			int flags = dv.getSystemUiVisibility();
 			if (fs) {
-				Log.v("hrshow", "hide");
 				flags |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
 			}
 			else {
@@ -155,6 +153,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 		if (sensor instanceof BleHeartRateSensor) {
 			final BleHeartRateSensor heartSensor = (BleHeartRateSensor) sensor;
 			int hr = (int)heartSensor.getData()[0];
+			Log.v("hrshow", "hr="+hr);
 			bigText.setText(""+hr);
 			lastValidTime = System.currentTimeMillis();
 			updateCache(true);
@@ -166,6 +165,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 	@Override
 	public void onBackPressed() {
 		updateCache(false);
+		Log.v("hrshow", "onBackPressed");
 		super.onBackPressed();
 	}
 
@@ -179,6 +179,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 	@Override
 	public void onResume() {
 		super.onResume();
+		Log.v("hrshow", "onResume");
 
 		setOrientation();
 		setFullScreen();
@@ -189,6 +190,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 			public void run() {
 				Toast.makeText(HeartRateActivity.this, "Cannot connect to heart rate", Toast.LENGTH_LONG).show();
 				updateCache(false);
+				Log.e("hrshow", "cannot connect");
 				finish();
 			}
 		}, initialTimeout);

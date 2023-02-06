@@ -2,7 +2,8 @@ package mobi.omegacentauri.giantheart.adapters;
 
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
-import android.os.Build;
+import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,17 +26,19 @@ public class BleDevicesAdapter extends BaseAdapter {
 
     private final ArrayList<BluetoothDevice> leDevices;
     private final HashMap<BluetoothDevice, Integer> rssiMap = new HashMap<BluetoothDevice, Integer>();
+    private final HashMap<BluetoothDevice, Boolean> preferredMap = new HashMap<BluetoothDevice, Boolean>();
 
     public BleDevicesAdapter(Context context) {
         leDevices = new ArrayList<BluetoothDevice>();
         inflater = LayoutInflater.from(context);
     }
 
-    public void addDevice(BluetoothDevice device, int rssi) {
+    public void addDevice(BluetoothDevice device, int rssi, boolean preferred) {
         if (!leDevices.contains(device)) {
             leDevices.add(device);
         }
         rssiMap.put(device, rssi);
+        preferredMap.put(device, preferred);
     }
 
     public BluetoothDevice getDevice(int position) {
@@ -51,7 +54,29 @@ public class BleDevicesAdapter extends BaseAdapter {
         Collections.sort(leDevices,new Comparator<BluetoothDevice>() {
             @Override
             public int compare(BluetoothDevice a, BluetoothDevice b) {
-                return rssiMap.get(b) - rssiMap.get(a);
+                boolean pa = preferredMap.get(a);
+                boolean pb = preferredMap.get(b);
+                if (pa && ! pb)
+                    return -1;
+                if (!pa && pb)
+                    return 1;
+                String na = a.getName();
+                if (na != null && na.equals("Unknown device"))
+                    na = null;
+                String nb = b.getName();
+                if (nb != null && nb.equals("Unknown device"))
+                    nb = null;
+                if (na != null && nb == null)
+                    return -1;
+                if (na == null && nb != null)
+                    return 1;
+                if (na != null && nb != null ) {
+                    return (na.compareTo(nb));
+                }
+                int delta = rssiMap.get(b) - rssiMap.get(a);
+                if (delta != 0)
+                    return delta;
+                return a.getAddress().compareTo(b.getAddress());
             }
         });
 
@@ -98,6 +123,7 @@ public class BleDevicesAdapter extends BaseAdapter {
             viewHolder.deviceName.setText(R.string.unknown_device);
         viewHolder.deviceAddress.setText(device.getAddress());
         viewHolder.deviceRssi.setText(""+rssiMap.get(device)+" dBm");
+        viewHolder.deviceName.setTextColor(preferredMap.get(device) ? Color.BLACK : Color.GRAY);
 
         return view;
     }

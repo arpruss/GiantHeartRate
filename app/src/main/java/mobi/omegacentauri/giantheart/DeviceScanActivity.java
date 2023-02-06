@@ -62,6 +62,7 @@ public class DeviceScanActivity extends ListActivity {
     private BluetoothAdapter bluetoothAdapter;
     private Scanner scanner;
     private SharedPreferences options;
+    private static final int[] DESIRED_SERVICES = { 0x180D, 0xFEE0 };
 
     boolean haveLocationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -273,6 +274,34 @@ public class DeviceScanActivity extends ListActivity {
         startActivity(demoIntent);
     }
 
+    static boolean haveDesiredServices(byte[] advertisementData) {
+        for (int i = 0 ; i + 1 < advertisementData.length ; ) {
+            int length = advertisementData[i] & 0xFF;
+            i++;
+            if (i + length > advertisementData.length)
+                return false;
+            int type = advertisementData[i] & 0xFF;
+            if (type == 2 || type == 3) {
+                i++;
+                length--;
+                while (length>0) {
+                    int service16 = (advertisementData[i] & 0xFF) + 256 * (advertisementData[i+1] & 0xFF);
+                    for (int j = 0 ; j < DESIRED_SERVICES.length ; j++)
+                        if (DESIRED_SERVICES[j] == service16)
+                            return true;
+                    length -= 2;
+                    i += 2;
+                }
+                if (type == 3)
+                    return false;
+            }
+            else {
+                i += length;
+            }
+        }
+        return false;
+    }
+
     private void init() {
         if (leDeviceListAdapter == null) {
             leDeviceListAdapter = new BleDevicesAdapter(getBaseContext());
@@ -296,7 +325,7 @@ public class DeviceScanActivity extends ListActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            leDeviceListAdapter.addDevice(device, rssi);
+                            leDeviceListAdapter.addDevice(device, rssi, haveDesiredServices(scanRecord));
                             leDeviceListAdapter.notifyDataSetChanged();
                         }
                     });
