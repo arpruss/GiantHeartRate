@@ -46,7 +46,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.demo_opengl);
+		setContentView(R.layout.heart);
 		getActionBar().hide();
 		options = PreferenceManager.getDefaultSharedPreferences(this);
 		if (options.getBoolean(Options.PREF_SCREEN_ON, true))
