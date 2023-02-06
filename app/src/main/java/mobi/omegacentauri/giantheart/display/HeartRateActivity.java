@@ -1,6 +1,7 @@
 package mobi.omegacentauri.giantheart.display;
 
 import android.app.Application;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
@@ -8,12 +9,15 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 
+import mobi.omegacentauri.giantheart.DeviceScanActivity;
 import mobi.omegacentauri.giantheart.R;
 import mobi.omegacentauri.giantheart.sensor.BleHeartRateSensor;
 import mobi.omegacentauri.giantheart.sensor.BleSensor;
@@ -27,13 +31,17 @@ public class HeartRateActivity extends DemoSensorActivity {
 
 	static public long lastValidTime;
 	Handler timeoutHandler;
-	static final long initialTimeout = 20000;
+	Handler buttonHideHandler;
+	static final long initialTimeout = 30000;
 	static final long periodicTimeout = 10000;
 	boolean works;
 
 	private BigTextView bigText;
 	private SharedPreferences options;
 	private Runnable periodicTimeoutRunnable;
+	private ImageButton settingsButton;
+	private Runnable buttonHideRunnable;
+	private static final long buttonHideTime = 8000;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -46,7 +54,6 @@ public class HeartRateActivity extends DemoSensorActivity {
 		else
 			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		bigText = (BigTextView) findViewById(R.id.heartrate);
-		bigText.setText(" ? ");
 		works = false;
 		timeoutHandler = new Handler();
 		periodicTimeoutRunnable = new Runnable() {
@@ -56,6 +63,9 @@ public class HeartRateActivity extends DemoSensorActivity {
 				timeoutHandler.postDelayed(periodicTimeoutRunnable, periodicTimeout);
 			}
 		};
+		settingsButton = (ImageButton) findViewById(R.id.settings);
+		buttonHideHandler = new Handler();
+		showButtons();
 	}
 
 	void updateCache(boolean state) {
@@ -73,6 +83,28 @@ public class HeartRateActivity extends DemoSensorActivity {
 			ed.putString(Options.PREF_SERVICE, serviceUuid);
 			ed.apply();
 		}
+	}
+
+	void showButtons() {
+		settingsButton.setVisibility(View.VISIBLE);
+		if (!isTV()) {
+			if (buttonHideRunnable == null)
+				buttonHideRunnable = new Runnable() {
+					@Override
+					public void run() {
+						settingsButton.setVisibility(View.GONE);
+						buttonHideHandler.postDelayed(periodicTimeoutRunnable, buttonHideTime);
+					}
+				};
+			buttonHideHandler.removeCallbacksAndMessages(null);
+			buttonHideHandler.postDelayed(buttonHideRunnable, buttonHideTime);
+		}
+	}
+
+	@Override
+	public boolean dispatchTouchEvent(MotionEvent me) {
+		showButtons();
+		return super.dispatchTouchEvent(me);
 	}
 
 	public boolean isTV() {
@@ -153,12 +185,17 @@ public class HeartRateActivity extends DemoSensorActivity {
 		if (sensor instanceof BleHeartRateSensor) {
 			final BleHeartRateSensor heartSensor = (BleHeartRateSensor) sensor;
 			int hr = (int)heartSensor.getData()[0];
-			Log.v("hrshow", "hr="+hr);
-			bigText.setText(""+hr);
-			lastValidTime = System.currentTimeMillis();
-			updateCache(true);
-			timeoutHandler.removeCallbacksAndMessages(null);
-			timeoutHandler.postDelayed(periodicTimeoutRunnable, periodicTimeout);
+			if (hr > 0) {
+				Log.v("hrshow", "hr=" + hr);
+				bigText.setText("" + hr);
+				lastValidTime = System.currentTimeMillis();
+				updateCache(true);
+				timeoutHandler.removeCallbacksAndMessages(null);
+				timeoutHandler.postDelayed(periodicTimeoutRunnable, periodicTimeout);
+			}
+			else {
+				bigText.setText(" ? ");
+			}
 		}
 	}
 
@@ -183,6 +220,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 
 		setOrientation();
 		setFullScreen();
+		showButtons();
 
 		timeoutHandler.removeCallbacksAndMessages(null);
 		timeoutHandler.postDelayed(new Runnable() {
@@ -194,5 +232,13 @@ public class HeartRateActivity extends DemoSensorActivity {
 				finish();
 			}
 		}, initialTimeout);
+		bigText.setText(" ? ");
+	}
+
+	public void onSettingsClick(View view) {
+		updateCache(false);
+		final Intent i = new Intent();
+		i.setClass(this, DeviceScanActivity.class);
+		startActivity(i);
 	}
 }

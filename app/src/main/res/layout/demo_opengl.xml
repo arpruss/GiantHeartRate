@@ -14,4 +14,14 @@
         android:textSize="50sp"
         />
 
+    <ImageButton
+        android:id="@+id/settings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right"
+        android:background="@null"
+        android:padding="12dp"
+        android:src="@drawable/settings"
+        android:onClick="onSettingsClick" />
+
 </FrameLayout>
