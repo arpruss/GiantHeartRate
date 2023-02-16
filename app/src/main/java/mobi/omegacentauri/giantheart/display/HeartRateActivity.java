@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -65,6 +66,12 @@ public class HeartRateActivity extends DemoSensorActivity {
 		};
 		settingsButton = (ImageButton) findViewById(R.id.settings);
 		buttonHideHandler = new Handler();
+		showButtons();
+	}
+
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
 		showButtons();
 	}
 

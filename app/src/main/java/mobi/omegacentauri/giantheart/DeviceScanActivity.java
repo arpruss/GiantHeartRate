@@ -23,6 +23,9 @@ import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -56,11 +59,10 @@ import mobi.omegacentauri.giantheart.sensor.BleHeartRateSensor;
 public class DeviceScanActivity extends ListActivity {
 
     private static final int REQUEST_ENABLE_BT = 1;
-    private static final long SCAN_PERIOD = 500;
 
     private BleDevicesAdapter leDeviceListAdapter;
     private BluetoothAdapter bluetoothAdapter;
-    private Scanner scanner;
+    private BluetoothLeScanner scanner;
     private SharedPreferences options;
     private static final int[] DESIRED_SERVICES = { 0x180D, 0xFEE0 };
 
@@ -137,16 +139,10 @@ public class DeviceScanActivity extends ListActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.gatt_scan, menu);
-        if (scanner == null || !scanner.isScanning()) {
-            menu.findItem(R.id.menu_stop).setVisible(false);
-            menu.findItem(R.id.menu_scan).setVisible(true);
-            menu.findItem(R.id.menu_refresh).setActionView(null);
-        } else {
-            menu.findItem(R.id.menu_stop).setVisible(true);
-            menu.findItem(R.id.menu_scan).setVisible(false);
+        menu.findItem(R.id.menu_stop).setVisible(false);
+        menu.findItem(R.id.menu_scan).setVisible(false);
             menu.findItem(R.id.menu_refresh).setActionView(
                     R.layout.actionbar_indeterminate_progress);
-        }
         return true;
     }
 
@@ -155,23 +151,6 @@ public class DeviceScanActivity extends ListActivity {
         switch (item.getItemId()) {
             case R.id.menu_info:
                 showLicenses();
-                break;
-            case R.id.menu_scan:
-                leDeviceListAdapter.clear();
-                if (scanner == null) {
-                    scanner = new Scanner(bluetoothAdapter, mLeScanCallback);
-                    scanner.startScanning();
-
-                    invalidateOptionsMenu();
-                }
-                break;
-            case R.id.menu_stop:
-                if (scanner != null) {
-                    scanner.stopScanning();
-                    scanner = null;
-
-                    invalidateOptionsMenu();
-                }
                 break;
         }
         return true;
@@ -210,7 +189,7 @@ public class DeviceScanActivity extends ListActivity {
         super.onPause();
 
         if (scanner != null) {
-            scanner.stopScanning();
+            scanner.stopScan(mLeScanCallback);
             scanner = null;
         }
     }
@@ -307,81 +286,30 @@ public class DeviceScanActivity extends ListActivity {
             leDeviceListAdapter = new BleDevicesAdapter(getBaseContext());
             setListAdapter(leDeviceListAdapter);
         }
+        leDeviceListAdapter.clear();
 
-        if (scanner == null) {
-            scanner = new Scanner(bluetoothAdapter, mLeScanCallback);
-            scanner.startScanning();
+        if (scanner == null && bluetoothAdapter != null) {
+            scanner = bluetoothAdapter.getBluetoothLeScanner();
         }
+
+        if (scanner != null)
+            scanner.startScan(mLeScanCallback);
 
         invalidateOptionsMenu();
     }
 
     // Device scan callback.
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
-
-                @Override
-                public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            leDeviceListAdapter.addDevice(device, rssi, haveDesiredServices(scanRecord));
-                            leDeviceListAdapter.notifyDataSetChanged();
-                        }
-                    });
-                }
-            };
-
-    private static class Scanner extends Thread {
-        private final BluetoothAdapter bluetoothAdapter;
-        private final BluetoothAdapter.LeScanCallback mLeScanCallback;
-
-        private volatile boolean isScanning = false;
-
-        Scanner(BluetoothAdapter adapter, BluetoothAdapter.LeScanCallback callback) {
-            bluetoothAdapter = adapter;
-            mLeScanCallback = callback;
-        }
-
-        public boolean isScanning() {
-            return isScanning;
-        }
-
-        public void startScanning() {
-            synchronized (this) {
-                isScanning = true;
-                start();
-            }
-        }
-
-        public void stopScanning() {
-            synchronized (this) {
-                isScanning = false;
-                bluetoothAdapter.stopLeScan(mLeScanCallback);
-            }
-        }
-
+    private ScanCallback mLeScanCallback = new ScanCallback() {
         @Override
-        public void run() {
-            try {
-                while (true) {
-                    synchronized (this) {
-                        if (!isScanning)
-                            break;
-
-                        bluetoothAdapter.startLeScan(mLeScanCallback);
-                    }
-
-                    sleep(SCAN_PERIOD);
-
-                    synchronized (this) {
-                        bluetoothAdapter.stopLeScan(mLeScanCallback);
-                    }
-                }
-            } catch (InterruptedException ignore) {
-            } finally {
-                bluetoothAdapter.stopLeScan(mLeScanCallback);
+        public void onScanResult(int callbackType, ScanResult result) {
+            super.onScanResult(callbackType, result);
+            final int rssi = result.getRssi();
+            final BluetoothDevice device = result.getDevice();
+            byte[] scanRecord = result.getScanRecord().getBytes();
+            if (haveDesiredServices(scanRecord)) {
+                leDeviceListAdapter.addDevice(device, rssi, haveDesiredServices(scanRecord));
+                leDeviceListAdapter.notifyDataSetChanged();
             }
         }
-    }
+    };
 }
