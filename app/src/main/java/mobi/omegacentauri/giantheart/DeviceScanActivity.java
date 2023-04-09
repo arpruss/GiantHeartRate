@@ -149,8 +149,10 @@ public class DeviceScanActivity extends ListActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_info:
-                showLicenses();
+            case R.id.menu_settings:
+                final Intent i = new Intent();
+                i.setClass(this, Options.class);
+                startActivity(i);
                 break;
         }
         return true;

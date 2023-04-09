@@ -10,6 +10,7 @@ import android.view.View;
 import mobi.omegacentauri.giantheart.display.SansBold;
 
 public class BigTextView extends View {
+    private final Paint backPaint;
     RectF bounds = new RectF();
     float lineSpacing = 1.05f;
     float letterSpacing = 1f;
@@ -29,6 +30,9 @@ public class BigTextView extends View {
     public BigTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
+        backPaint = new Paint();
+        backPaint.setColor(Color.BLACK);
+        
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         miniFont = new SansBold();
 
@@ -107,6 +111,8 @@ public class BigTextView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        canvas.drawRect(0,0, canvas.getWidth(), canvas.getHeight(), backPaint);
+
         int n = lines.length;
         if (n==0)
             return;
@@ -181,6 +187,10 @@ public class BigTextView extends View {
             else
                 return canvasSize - half;
         }
+    }
+    
+    public void setBackColor(int color) {
+        backPaint.setColor(color);
     }
 
     public void setTextColor(int textColor) {

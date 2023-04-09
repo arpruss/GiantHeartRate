@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +18,8 @@ import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+
+import java.time.Year;
 
 import mobi.omegacentauri.giantheart.DeviceScanActivity;
 import mobi.omegacentauri.giantheart.R;
@@ -40,9 +43,10 @@ public class HeartRateActivity extends DemoSensorActivity {
 	private BigTextView bigText;
 	private SharedPreferences options;
 	private Runnable periodicTimeoutRunnable;
-	private ImageButton settingsButton;
+	private View toolbarView;
 	private Runnable buttonHideRunnable;
 	private static final long buttonHideTime = 8000;
+	private boolean colorByZone;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -64,7 +68,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 				timeoutHandler.postDelayed(periodicTimeoutRunnable, periodicTimeout);
 			}
 		};
-		settingsButton = (ImageButton) findViewById(R.id.settings);
+		toolbarView =findViewById(R.id.toolbar);
 		buttonHideHandler = new Handler();
 		showButtons();
 	}
@@ -93,13 +97,13 @@ public class HeartRateActivity extends DemoSensorActivity {
 	}
 
 	void showButtons() {
-		settingsButton.setVisibility(View.VISIBLE);
+		toolbarView.setVisibility(View.VISIBLE);
 		if (!isTV()) {
 			if (buttonHideRunnable == null)
 				buttonHideRunnable = new Runnable() {
 					@Override
 					public void run() {
-						settingsButton.setVisibility(View.GONE);
+						toolbarView.setVisibility(View.GONE);
 						buttonHideHandler.postDelayed(periodicTimeoutRunnable, buttonHideTime);
 					}
 				};
@@ -194,6 +198,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 			int hr = (int)heartSensor.getData()[0];
 			if (hr > 0) {
 				Log.v("hrshow", "hr=" + hr);
+				colorByHR(hr);
 				bigText.setText("" + hr);
 				lastValidTime = System.currentTimeMillis();
 				updateCache(true);
@@ -201,9 +206,38 @@ public class HeartRateActivity extends DemoSensorActivity {
 				timeoutHandler.postDelayed(periodicTimeoutRunnable, periodicTimeout);
 			}
 			else {
+				colorByHR(0);
 				bigText.setText(" ? ");
 			}
 		}
+	}
+
+	private void colorByHR(int hr) {
+		if (!colorByZone || hr == 0) {
+			setColor(Color.BLACK, Color.WHITE);
+			return;
+		}
+		double age = Year.now().getValue() - Integer.parseInt(options.getString(Options.PREF_BIRTH_YEAR, "1984"));
+		double maxHR = 208 - 0.7 * age;
+		if (hr > maxHR)
+			setColor(Color.rgb(200,0,0), Color.WHITE);
+		else if (hr >= .9 * maxHR)
+			setColor(Color.BLACK, Color.rgb(255,32,32));
+		else if (hr >= .8 * maxHR)
+			setColor(Color.BLACK, Color.rgb(255,128,0));
+		else if (hr >= .7 * maxHR)
+			setColor(Color.BLACK, Color.rgb(0, 255, 0));
+		else if (hr >= .6 * maxHR)
+			setColor(Color.BLACK, Color.rgb(255,64,64));
+		else if (hr >= .5 * maxHR)
+			setColor(Color.BLACK, Color.WHITE);
+		else
+			setColor(Color.BLACK, Color.rgb(140,140,140));
+	}
+
+	private void setColor(int back, int fore) {
+		bigText.setBackColor(back);
+		bigText.setTextColor(fore);
 	}
 
 	@Override
@@ -223,6 +257,9 @@ public class HeartRateActivity extends DemoSensorActivity {
 	@Override
 	public void onResume() {
 		super.onResume();
+
+		colorByZone = options.getBoolean(Options.PREF_ZONE, false);
+
 		Log.v("hrshow", "onResume");
 
 		setOrientation();
@@ -239,13 +276,21 @@ public class HeartRateActivity extends DemoSensorActivity {
 				finish();
 			}
 		}, initialTimeout);
+		colorByHR(0);
 		bigText.setText(" ? ");
 	}
 
 	public void onSettingsClick(View view) {
 		updateCache(false);
 		final Intent i = new Intent();
-		i.setClass(this, DeviceScanActivity.class);
+		i.setClass(this, Options.class);
 		startActivity(i);
 	}
+
+    public void onBluetoothClick(View view) {
+		updateCache(false);
+		final Intent i = new Intent();
+		i.setClass(this, DeviceScanActivity.class);
+		startActivity(i);
+    }
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory>
+        <CheckBoxPreference android:title="Color by heart zone"
+            android:key="zoneDisplay"
+            android:defaultValue="false"
+            android:summary="Show heart zone colors."
+            />
+        <ListPreference android:title="Birth year for heart zone"
+            android:key="birthYear" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Licenses and Copyrights">
+    <Preference android:key="license" android:title="View Licenses and Copyrights"/>
+    </PreferenceCategory>
+</PreferenceScreen>

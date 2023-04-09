@@ -44,6 +44,14 @@ limitations under the License.
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name=".display.Options"
+            android:exported="true"
+            >
+            <intent-filter>
+                <category android:name="android.intent.category.PREFERENCE" />
+            </intent-filter>
+        </activity>
+
         <!-- <activity android:name="mobi.omegacentauri.giantheart.DeviceServicesActivity"/> -->
         <activity android:name="mobi.omegacentauri.giantheart.display.HeartRateActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
