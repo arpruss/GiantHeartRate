@@ -47,6 +47,8 @@ public class HeartRateActivity extends DemoSensorActivity {
 	private Runnable buttonHideRunnable;
 	private static final long buttonHideTime = 8000;
 	private boolean colorByZone;
+	private String formula = Options.PREF_FORMULA_FOX;
+	private boolean warnMaximum;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -213,26 +215,34 @@ public class HeartRateActivity extends DemoSensorActivity {
 	}
 
 	private void colorByHR(int hr) {
-		if (!colorByZone || hr == 0) {
+		if ((!colorByZone && !warnMaximum) || hr == 0) {
 			setColor(Color.BLACK, Color.WHITE);
 			return;
 		}
 		double age = Year.now().getValue() - Integer.parseInt(options.getString(Options.PREF_BIRTH_YEAR, "1984"));
-		double maxHR = 208 - 0.7 * age;
-		if (hr > maxHR)
+		double maxHR = 220-age;
+		if (formula.equals(Options.PREF_FORMULA_TANAKA))
+			maxHR = 208 - 0.7 * age;
+		else if (formula.equals((Options.PREF_FORMULA_HUNT)))
+			maxHR = 211 - 0.64 * age;
+		if (hr >= maxHR)
 			setColor(Color.rgb(200,0,0), Color.WHITE);
-		else if (hr >= .9 * maxHR)
-			setColor(Color.BLACK, Color.rgb(255,32,32));
-		else if (hr >= .8 * maxHR)
-			setColor(Color.BLACK, Color.rgb(255,128,0));
-		else if (hr >= .7 * maxHR)
-			setColor(Color.BLACK, Color.rgb(0, 255, 0));
-		else if (hr >= .6 * maxHR)
-			setColor(Color.BLACK, Color.rgb(255,64,64));
-		else if (hr >= .5 * maxHR)
-			setColor(Color.BLACK, Color.WHITE);
-		else
-			setColor(Color.BLACK, Color.rgb(140,140,140));
+		else {
+			if (! colorByZone)
+				setColor(Color.BLACK, Color.WHITE);
+			else if (hr >= .9 * maxHR)
+				setColor(Color.BLACK, Color.rgb(255, 32, 32));
+			else if (hr >= .8 * maxHR)
+				setColor(Color.BLACK, Color.rgb(255, 128, 0));
+			else if (hr >= .7 * maxHR)
+				setColor(Color.BLACK, Color.rgb(0, 255, 0));
+			else if (hr >= .6 * maxHR)
+				setColor(Color.BLACK, Color.rgb(64, 64, 255));
+			else if (hr >= .5 * maxHR)
+				setColor(Color.BLACK, Color.WHITE);
+			else
+				setColor(Color.BLACK, Color.rgb(140, 140, 140));
+		}
 	}
 
 	private void setColor(int back, int fore) {
@@ -259,6 +269,8 @@ public class HeartRateActivity extends DemoSensorActivity {
 		super.onResume();
 
 		colorByZone = options.getBoolean(Options.PREF_ZONE, false);
+		formula = options.getString(Options.PREF_FORMULA, Options.PREF_FORMULA_FOX);
+		warnMaximum = options.getBoolean(Options.PREF_WARN_MAXIMUM, false);
 
 		Log.v("hrshow", "onResume");
 

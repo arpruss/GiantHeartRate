@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory>
+    <PreferenceCategory android:title="Heart zones (use at own risk, under doctor supervision)">
         <CheckBoxPreference android:title="Color by heart zone"
             android:key="zoneDisplay"
             android:defaultValue="false"
             android:summary="Show heart zone colors."
             />
-        <ListPreference android:title="Birth year for heart zone"
+        <CheckBoxPreference android:title="Red background above maximum"
+            android:key="warnMaximum"
+            android:defaultValue="false"
+            android:summary="Show red background above maximum heart rate, even if heart zones are off."
+            />
+        <ListPreference android:title="Birth year for maximum / zones"
             android:key="birthYear" />
+        <ListPreference android:title="Maximum heart rate formula"
+            android:key="formula"
+            android:defaultValue="fox"
+            android:entries="@array/formula_labels"
+            android:entryValues="@array/formulas"
+            />
     </PreferenceCategory>
     <PreferenceCategory android:title="Licenses and Copyrights">
     <Preference android:key="license" android:title="View Licenses and Copyrights"/>

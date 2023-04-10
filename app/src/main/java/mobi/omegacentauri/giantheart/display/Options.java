@@ -29,6 +29,11 @@ public class Options extends PreferenceActivity {
     public static final String PREF_SERVICE = "service";
     public static final String PREF_BIRTH_YEAR = "birthYear";
     public static final String PREF_ZONE = "zoneDisplay";
+    public static final String PREF_FORMULA = "formula";
+    public static final String PREF_FORMULA_FOX = "fox";
+    public static final String PREF_FORMULA_TANAKA = "tanaka";
+    public static final String PREF_FORMULA_HUNT = "hunt";
+    public static final String PREF_WARN_MAXIMUM = "warnMaximum";
     private SharedPreferences.OnSharedPreferenceChangeListener listener;
     private SharedPreferences options;
 
@@ -123,7 +128,7 @@ public class Options extends PreferenceActivity {
 
     private void customizeDisplay() {
         scanPreferences(getPreferenceScreen());
-        boolean zoneColor = options.getBoolean(PREF_ZONE, false);
+        boolean needMax = options.getBoolean(PREF_ZONE, false) || options.getBoolean(PREF_WARN_MAXIMUM, false);
         ListPreference birthYear = (ListPreference)findPreference(PREF_BIRTH_YEAR);
         int now = Year.now().getValue();
         CharSequence years[] = new CharSequence[120];
@@ -133,7 +138,7 @@ public class Options extends PreferenceActivity {
         birthYear.setEntries(years);
         birthYear.setEntryValues(years);
         birthYear.setDefaultValue("1984");
-        birthYear.setEnabled(zoneColor);
+        birthYear.setEnabled(needMax);
     }
 
     public void setSummary(ListPreference p) {
