@@ -50,8 +50,7 @@ public abstract class DemoSensorActivity extends Activity {
                 bleService.enableSensor(sensor, true);
             } else if (BleService.ACTION_DATA_AVAILABLE.equals(action)) {
                 final BleSensor<?> sensor = BleSensors.getSensor(serviceUuid);
-                final String text = intent.getStringExtra(BleService.EXTRA_TEXT);
-                onDataReceived(sensor, text);
+                onDataReceived(sensor);
             }
         }
     };
@@ -79,7 +78,7 @@ public abstract class DemoSensorActivity extends Activity {
         }
     };
 
-    public abstract void onDataReceived(BleSensor<?> sensor, String text);
+    public abstract void onDataReceived(BleSensor<?> sensor);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

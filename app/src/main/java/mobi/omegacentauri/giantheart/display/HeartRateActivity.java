@@ -33,7 +33,8 @@ public class HeartRateActivity extends DemoSensorActivity {
 	private final static String TAG = HeartRateActivity.class
 			.getSimpleName();
 
-	static public long lastValidTime;
+    private static final long WAIT_TIME = 3000; // only show invalid value after this amount of waiting
+    static public long lastValidTime = -WAIT_TIME;
 	Handler timeoutHandler;
 	Handler buttonHideHandler;
 	static final long initialTimeout = 30000;
@@ -193,23 +194,26 @@ public class HeartRateActivity extends DemoSensorActivity {
 		}
 	}
 
-		@Override
-	public void onDataReceived(BleSensor<?> sensor, String text) {
+    public void showValue(int hr) {
+        colorByHR(hr);
+        bigText.setText(hr > 0  ? ("" + hr) : " ? ");
+    }
+
+	@Override
+	public void onDataReceived(BleSensor<?> sensor) {
 		if (sensor instanceof BleHeartRateSensor) {
 			final BleHeartRateSensor heartSensor = (BleHeartRateSensor) sensor;
-			int hr = (int)heartSensor.getData()[0];
+            float[] data = heartSensor.getData();
+			int hr = ( data != null && data.length > 0 ) ? (int)data[0] : 0;
 			if (hr > 0) {
-				Log.v("hrshow", "hr=" + hr);
-				colorByHR(hr);
-				bigText.setText("" + hr);
+                showValue(hr);
 				lastValidTime = System.currentTimeMillis();
 				updateCache(true);
 				timeoutHandler.removeCallbacksAndMessages(null);
 				timeoutHandler.postDelayed(periodicTimeoutRunnable, periodicTimeout);
 			}
-			else {
-				colorByHR(0);
-				bigText.setText(" ? ");
+			else if (System.currentTimeMillis() > lastValidTime + WAIT_TIME) {
+                showValue(0);
 			}
 		}
 	}
@@ -288,8 +292,8 @@ public class HeartRateActivity extends DemoSensorActivity {
 				finish();
 			}
 		}, initialTimeout);
-		colorByHR(0);
-		bigText.setText(" ? ");
+        showValue(0);
+        lastValidTime = -WAIT_TIME;
 	}
 
 	public void onSettingsClick(View view) {
