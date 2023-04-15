@@ -46,6 +46,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import mobi.omegacentauri.giantheart.adapters.BleDevicesAdapter;
 import mobi.omegacentauri.giantheart.display.HeartRateActivity;
@@ -75,21 +76,27 @@ public class DeviceScanActivity extends ListActivity {
         }
     }
 
+    boolean haveConnectPermission() {
+        if (Build.VERSION.SDK_INT >= 31) {
+            return PackageManager.PERMISSION_GRANTED == checkSelfPermission("android.permission.BLUETOOTH_CONNECT");
+        }
+        else {
+            return true;
+        }
+    }
+
     @Override
     public void onRequestPermissionsResult (int requestCode,
                                             String[] permissions,
                                             int[] grantResults) {
-        boolean haveLocationPermission = false;
-        for (int i=0; i<permissions.length; i++)
-            if (permissions[i].equals("android.permission.ACCESS_FINE_LOCATION")) {
-                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                    return;
+        for (int i=0; i<permissions.length; i++) {
+            if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                    finishAffinity();
+                } else {
+                    finish();
                 }
             }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            finishAffinity();
-        } else {
-            finish();
         }
     }
     @Override
@@ -98,17 +105,29 @@ public class DeviceScanActivity extends ListActivity {
 
         options = PreferenceManager.getDefaultSharedPreferences(this);
 
-        String oldAddress = options.getString(Options.PREF_DEVICE_ADDRESS, "");
-        if (oldAddress.length()>0) {
-            String oldService = options.getString(Options.PREF_SERVICE, "");
-            if (oldService.length()>0)
-                monitor(oldAddress,oldService);
+        boolean l = haveLocationPermission();
+        boolean c = haveConnectPermission();
+        if (!l || !c) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                ArrayList<String> permissions = new ArrayList<>();
+                if (!l)
+                    permissions.add("android.permission.ACCESS_FINE_LOCATION");
+                if (!c)
+                    permissions.add("android.permission.BLUETOOTH_CONNECT");
+                String[] pp = new String[permissions.size()];
+                permissions.toArray(pp);
+                for (String p : pp)
+                    Log.v("heart", "requesting permissions "+p);
+                requestPermissions(pp, 0);
+            }
         }
 
-        if (!haveLocationPermission()) {
-            Log.v("hrshow", "requesting");
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[] {"android.permission.ACCESS_FINE_LOCATION"}, 0);
+        if (l && c) {
+            String oldAddress = options.getString(Options.PREF_DEVICE_ADDRESS, "");
+            if (oldAddress.length() > 0) {
+                String oldService = options.getString(Options.PREF_SERVICE, "");
+                if (oldService.length() > 0)
+                    monitor(oldAddress, oldService);
             }
         }
 
