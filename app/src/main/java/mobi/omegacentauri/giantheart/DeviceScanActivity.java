@@ -65,7 +65,18 @@ public class DeviceScanActivity extends ListActivity {
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner scanner;
     private SharedPreferences options;
-    private static final int[] DESIRED_SERVICES = { 0x180D, 0xFEE0 };
+    private static final int MIBAND_SERVICE = 0xFEE0;
+    private static final int[] DESIRED_SERVICES = { MIBAND_SERVICE, 0x180D };
+    private static final int[] MIBAND_ONLY = { MIBAND_SERVICE };
+
+    boolean haveScanPermission() {
+        if (Build.VERSION.SDK_INT >= 31) {
+            return PackageManager.PERMISSION_GRANTED == checkSelfPermission("android.permission.BLUETOOTH_SCAN");
+        }
+        else {
+            return true;
+        }
+    }
 
     boolean haveLocationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -103,17 +114,23 @@ public class DeviceScanActivity extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.v("heartlog", "onCreate");
+
         options = PreferenceManager.getDefaultSharedPreferences(this);
 
         boolean l = haveLocationPermission();
         boolean c = haveConnectPermission();
-        if (!l || !c) {
+        boolean s = haveScanPermission();
+        Log.v("heartlog", "permissions "+l+" "+c+" "+s);
+        if (!l || !c || !s) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 ArrayList<String> permissions = new ArrayList<>();
                 if (!l)
                     permissions.add("android.permission.ACCESS_FINE_LOCATION");
                 if (!c)
                     permissions.add("android.permission.BLUETOOTH_CONNECT");
+                if (!s)
+                    permissions.add("android.permission.BLUETOOTH_SCAN");
                 String[] pp = new String[permissions.size()];
                 permissions.toArray(pp);
                 for (String p : pp)
@@ -126,8 +143,10 @@ public class DeviceScanActivity extends ListActivity {
             String oldAddress = options.getString(Options.PREF_DEVICE_ADDRESS, "");
             if (oldAddress.length() > 0) {
                 String oldService = options.getString(Options.PREF_SERVICE, "");
-                if (oldService.length() > 0)
-                    monitor(oldAddress, oldService);
+                if (oldService.length() > 0) {
+                    boolean fromAdvertisement = options.getBoolean(Options.PREF_FROM_ADVERTISEMENT, false);
+                    monitor(oldAddress, oldService, fromAdvertisement);
+                }
             }
         }
 
@@ -258,7 +277,7 @@ public class DeviceScanActivity extends ListActivity {
         if (device == null)
             return;
 
-        monitor(device.getAddress(),BleHeartRateSensor.getServiceUUIDString());
+        monitor(device.getAddress(),BleHeartRateSensor.getServiceUUIDString(),leDeviceListAdapter.isFromAdvertisement(position));
 
 /*        final Intent intent = new Intent(this, DeviceServicesActivity.class);
         intent.putExtra(DeviceServicesActivity.EXTRAS_DEVICE_NAME, device.getName());
@@ -266,41 +285,74 @@ public class DeviceScanActivity extends ListActivity {
         //startActivity(intent);
     }
 
-    private void monitor(String address, String service) {
+    private void monitor(String address, String service, boolean fromAdvertisement) {
         final Intent demoIntent = new Intent();
         demoIntent.setClass(this, HeartRateActivity.class);
         demoIntent.putExtra(DemoSensorActivity.EXTRAS_DEVICE_ADDRESS, address);
         demoIntent.putExtra(DemoSensorActivity.EXTRAS_SENSOR_UUID, service);
+        demoIntent.putExtra(DemoSensorActivity.EXTRAS_FROM_ADVERTISEMENT, fromAdvertisement);
         startActivity(demoIntent);
     }
 
-    static boolean haveDesiredServices(byte[] advertisementData) {
+    static int haveService(byte[] advertisementData, int[] services) {
         for (int i = 0 ; i + 1 < advertisementData.length ; ) {
             int length = advertisementData[i] & 0xFF;
             i++;
             if (i + length > advertisementData.length)
-                return false;
+                return 0;
             int type = advertisementData[i] & 0xFF;
             if (type == 2 || type == 3) {
                 i++;
                 length--;
                 while (length>0) {
                     int service16 = (advertisementData[i] & 0xFF) + 256 * (advertisementData[i+1] & 0xFF);
-                    for (int j = 0 ; j < DESIRED_SERVICES.length ; j++)
-                        if (DESIRED_SERVICES[j] == service16)
-                            return true;
+                    for (int j = 0 ; j < services.length ; j++)
+                        if (services[j] == service16)
+                            return services[j];
                     length -= 2;
                     i += 2;
                 }
                 if (type == 3)
-                    return false;
+                    return 0;
             }
             else {
                 i += length;
             }
         }
-        return false;
+        return 0;
     }
+
+    public static int getHeartRate(byte[] advertisementData) {
+        if (0 == haveService(advertisementData, MIBAND_ONLY))
+            return 0;
+        for (int i = 0 ; i + 1 < advertisementData.length ; ) {
+            int length = advertisementData[i] & 0xFF;
+            i++;
+            if (i + length > advertisementData.length)
+                return 0;
+            int type = advertisementData[i] & 0xFF;
+            if (type == 0xFF && length == 27) {
+                i++;
+                length--;
+                int id = (advertisementData[i] & 0xFF) + 256 * (advertisementData[i+1] & 0xFF);
+                i += 2;
+                length -= 2;
+                if (id == 0x157) {
+                    int hr = 0xFF & advertisementData[i+3];
+                    if (hr == 0xFF)
+                        return 0;
+                    else
+                        return hr;
+                }
+                i += length;
+            }
+            else {
+                i += length;
+            }
+        }
+        return 0;
+    }
+
 
     private void init() {
         if (leDeviceListAdapter == null) {
@@ -327,8 +379,10 @@ public class DeviceScanActivity extends ListActivity {
             final int rssi = result.getRssi();
             final BluetoothDevice device = result.getDevice();
             byte[] scanRecord = result.getScanRecord().getBytes();
-            if (haveDesiredServices(scanRecord)) {
-                leDeviceListAdapter.addDevice(device, rssi, haveDesiredServices(scanRecord));
+            int service = haveService(scanRecord, DESIRED_SERVICES);
+            if (0 != service) {
+                int hr = getHeartRate(scanRecord);
+                leDeviceListAdapter.addDevice(device, rssi, true, hr);
                 leDeviceListAdapter.notifyDataSetChanged();
             }
         }

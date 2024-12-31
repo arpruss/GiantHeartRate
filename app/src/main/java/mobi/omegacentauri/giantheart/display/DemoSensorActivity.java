@@ -1,10 +1,19 @@
 package mobi.omegacentauri.giantheart.display;
 
 import mobi.omegacentauri.giantheart.BleService;
+import mobi.omegacentauri.giantheart.DeviceScanActivity;
 import mobi.omegacentauri.giantheart.sensor.BleSensor;
 import mobi.omegacentauri.giantheart.sensor.BleSensors;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothManager;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -17,12 +26,16 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Created by steven on 9/5/13.
  * Modified by olli on 3/28/2014.
  */
 public abstract class DemoSensorActivity extends Activity {
+    public static final String EXTRAS_FROM_ADVERTISEMENT = "FROM_ADVERTISEMENT";
     private final static String TAG = DemoSensorActivity.class.getSimpleName();
 
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
@@ -77,8 +90,25 @@ public abstract class DemoSensorActivity extends Activity {
             finish();
         }
     };
+    protected boolean fromAdvertisement;
+    private BluetoothAdapter bluetoothAdapter;
+    private BluetoothLeScanner scanner;
 
     public abstract void onDataReceived(BleSensor<?> sensor);
+    public abstract void onDataReceived(int hr);
+    private ScanCallback mLeScanCallback = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            super.onScanResult(callbackType, result);
+            final int rssi = result.getRssi();
+            final BluetoothDevice device = result.getDevice();
+            if (device.getAddress().equals(deviceAddress)) {
+                byte[] scanRecord = result.getScanRecord().getBytes();
+                int hr = DeviceScanActivity.getHeartRate(scanRecord);
+                onDataReceived(hr);
+            }
+        }
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -87,38 +117,63 @@ public abstract class DemoSensorActivity extends Activity {
         final Intent intent = getIntent();
         deviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
         serviceUuid = intent.getStringExtra(EXTRAS_SENSOR_UUID);
+        fromAdvertisement = intent.getBooleanExtra(EXTRAS_FROM_ADVERTISEMENT, false);
+        final BluetoothManager bluetoothManager =
+                (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+        if (fromAdvertisement) {
+            bluetoothAdapter = bluetoothManager.getAdapter();
+            scanner = bluetoothAdapter.getBluetoothLeScanner();
+        }
+        else {
+            scanner = null;
+            final Intent gattServiceIntent = new Intent(this, BleService.class);
+            bindService(gattServiceIntent, serviceConnection, BIND_AUTO_CREATE);
+        }
 
         //getActionBar().setDisplayHomeAsUpEnabled(true);
-
-        final Intent gattServiceIntent = new Intent(this, BleService.class);
-        bindService(gattServiceIntent, serviceConnection, BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
-        if (bleService != null) {
-            final boolean result = bleService.connect(deviceAddress);
-            Log.v("hrshow", "Connect request result=" + result);
+        if (fromAdvertisement) {
+            ScanSettings settings = new ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                            .build();
+            List<ScanFilter> filters = new ArrayList<ScanFilter>();
+            filters.add(new ScanFilter.Builder().setDeviceAddress(deviceAddress).build() );
+            scanner.startScan(filters, settings, mLeScanCallback);
         }
         else {
-            Log.e("hrShow", "null bleService");
+            registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
+            if (bleService != null) {
+                final boolean result = bleService.connect(deviceAddress);
+                Log.v("hrshow", "Connect request result=" + result);
+            } else {
+                Log.e("hrShow", "null bleService");
+            }
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(gattUpdateReceiver);
+        if (fromAdvertisement) {
+            scanner.stopScan(mLeScanCallback);
+        }
+        else {
+            unregisterReceiver(gattUpdateReceiver);
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(serviceConnection);
-        bleService = null;
+        if (! fromAdvertisement) {
+            unbindService(serviceConnection);
+            bleService = null;
+        }
     }
 
     /*

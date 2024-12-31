@@ -33,7 +33,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 	private final static String TAG = HeartRateActivity.class
 			.getSimpleName();
 
-    private static final long WAIT_TIME = 3000; // only show invalid value after this amount of waiting
+    private static final long WAIT_TIME = 6000; // only show invalid value after this amount of waiting
     static public long lastValidTime = -WAIT_TIME;
 	Handler timeoutHandler;
 	Handler buttonHideHandler;
@@ -85,8 +85,9 @@ public class HeartRateActivity extends DemoSensorActivity {
 	void updateCache(boolean state) {
 		String oldAddress = options.getString(Options.PREF_DEVICE_ADDRESS, "");
 		if (!state) {
-			if (oldAddress.length() != 0)
+			if (oldAddress.length() != 0) {
 				options.edit().putString(Options.PREF_DEVICE_ADDRESS, "").apply();
+			}
 		}
 		else {
 			String oldService = options.getString(Options.PREF_SERVICE, "");
@@ -94,6 +95,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 				return;
 			SharedPreferences.Editor ed = options.edit();
 			ed.putString(Options.PREF_DEVICE_ADDRESS, deviceAddress);
+			ed.putBoolean(Options.PREF_FROM_ADVERTISEMENT, fromAdvertisement);
 			ed.putString(Options.PREF_SERVICE, serviceUuid);
 			ed.apply();
 		}
@@ -199,22 +201,25 @@ public class HeartRateActivity extends DemoSensorActivity {
         bigText.setText(hr > 0  ? ("" + hr) : " ? ");
     }
 
+	public void onDataReceived(int hr) {
+		if (hr > 0) {
+			showValue(hr);
+			lastValidTime = System.currentTimeMillis();
+			updateCache(true);
+			timeoutHandler.removeCallbacksAndMessages(null);
+			timeoutHandler.postDelayed(periodicTimeoutRunnable, periodicTimeout);
+		}
+		else if (System.currentTimeMillis() > lastValidTime + WAIT_TIME) {
+			showValue(0);
+		}
+	}
 	@Override
 	public void onDataReceived(BleSensor<?> sensor) {
 		if (sensor instanceof BleHeartRateSensor) {
 			final BleHeartRateSensor heartSensor = (BleHeartRateSensor) sensor;
             float[] data = heartSensor.getData();
 			int hr = ( data != null && data.length > 0 ) ? (int)data[0] : 0;
-			if (hr > 0) {
-                showValue(hr);
-				lastValidTime = System.currentTimeMillis();
-				updateCache(true);
-				timeoutHandler.removeCallbacksAndMessages(null);
-				timeoutHandler.postDelayed(periodicTimeoutRunnable, periodicTimeout);
-			}
-			else if (System.currentTimeMillis() > lastValidTime + WAIT_TIME) {
-                showValue(0);
-			}
+			onDataReceived(hr);
 		}
 	}
 

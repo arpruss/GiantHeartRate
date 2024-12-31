@@ -3,7 +3,6 @@ package mobi.omegacentauri.giantheart.adapters;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +25,7 @@ public class BleDevicesAdapter extends BaseAdapter {
 
     private final ArrayList<BluetoothDevice> leDevices;
     private final HashMap<BluetoothDevice, Integer> rssiMap = new HashMap<BluetoothDevice, Integer>();
+    private final HashMap<BluetoothDevice, Integer> hrMap = new HashMap<BluetoothDevice, Integer>();
     private final HashMap<BluetoothDevice, Boolean> preferredMap = new HashMap<BluetoothDevice, Boolean>();
 
     public BleDevicesAdapter(Context context) {
@@ -33,10 +33,11 @@ public class BleDevicesAdapter extends BaseAdapter {
         inflater = LayoutInflater.from(context);
     }
 
-    public void addDevice(BluetoothDevice device, int rssi, boolean preferred) {
+    public void addDevice(BluetoothDevice device, int rssi, boolean preferred, int hr) {
         if (!leDevices.contains(device)) {
             leDevices.add(device);
         }
+        hrMap.put(device, hr);
         rssiMap.put(device, rssi);
         preferredMap.put(device, preferred);
     }
@@ -44,6 +45,8 @@ public class BleDevicesAdapter extends BaseAdapter {
     public BluetoothDevice getDevice(int position) {
         return leDevices.get(position);
     }
+
+    public boolean isFromAdvertisement(int position) { return 0 != hrMap.get(leDevices.get(position)); }
 
     public void clear() {
         leDevices.clear();
@@ -110,6 +113,7 @@ public class BleDevicesAdapter extends BaseAdapter {
             viewHolder.deviceAddress = (TextView) view.findViewById(R.id.device_address);
             viewHolder.deviceName = (TextView) view.findViewById(R.id.device_name);
             viewHolder.deviceRssi = (TextView) view.findViewById(R.id.device_rssi);
+            viewHolder.hr = (TextView) view.findViewById(R.id.device_hr);
             view.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) view.getTag();
@@ -124,11 +128,17 @@ public class BleDevicesAdapter extends BaseAdapter {
         viewHolder.deviceAddress.setText(device.getAddress());
         viewHolder.deviceRssi.setText(""+rssiMap.get(device)+" dBm");
         viewHolder.deviceName.setTextColor(preferredMap.get(device) ? Color.BLACK : Color.GRAY);
+        int hr = hrMap.get(device);
+        if (hr != 0)
+            viewHolder.hr.setText("   HR:"+hr);
+        else
+            viewHolder.hr.setText("");
 
         return view;
     }
 
     private static class ViewHolder {
+        TextView hr;
         TextView deviceName;
         TextView deviceAddress;
         TextView deviceRssi;
