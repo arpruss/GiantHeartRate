@@ -42,7 +42,6 @@ public class HeartRateActivity extends DemoSensorActivity {
 	boolean works;
 
 	private BigTextView bigText;
-	private SharedPreferences options;
 	private Runnable periodicTimeoutRunnable;
 	private View toolbarView;
 	private Runnable buttonHideRunnable;
@@ -56,7 +55,6 @@ public class HeartRateActivity extends DemoSensorActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.heart);
 		getActionBar().hide();
-		options = PreferenceManager.getDefaultSharedPreferences(this);
 		if (options.getBoolean(Options.PREF_SCREEN_ON, true))
 			getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		else

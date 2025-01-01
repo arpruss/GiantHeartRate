@@ -35,6 +35,7 @@ public class Options extends PreferenceActivity {
     public static final String PREF_FORMULA_HUNT = "hunt";
     public static final String PREF_WARN_MAXIMUM = "warnMaximum";
     public static final String PREF_FROM_ADVERTISEMENT = "fromAdvertisement" ;
+    public static final String PREF_USE_ADVERTISED = "useAdvertised";
     private SharedPreferences.OnSharedPreferenceChangeListener listener;
     private SharedPreferences options;
 

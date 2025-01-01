@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -263,7 +264,12 @@ public class DeviceServicesActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
+        if (Build.VERSION.SDK_INT >= 33) {
+            registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter(), RECEIVER_NOT_EXPORTED);
+        }
+        else {
+            registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
+        }
         if (bleService != null) {
             final boolean result = bleService.connect(deviceAddress);
             Log.d(TAG, "Connect request result=" + result);

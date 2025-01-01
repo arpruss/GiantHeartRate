@@ -5,6 +5,7 @@ import mobi.omegacentauri.giantheart.DeviceScanActivity;
 import mobi.omegacentauri.giantheart.sensor.BleSensor;
 import mobi.omegacentauri.giantheart.sensor.BleSensors;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -20,8 +21,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -93,6 +97,7 @@ public abstract class DemoSensorActivity extends Activity {
     protected boolean fromAdvertisement;
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner scanner;
+    protected SharedPreferences options;
 
     public abstract void onDataReceived(BleSensor<?> sensor);
     public abstract void onDataReceived(int hr);
@@ -114,10 +119,11 @@ public abstract class DemoSensorActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        options = PreferenceManager.getDefaultSharedPreferences(this);
         final Intent intent = getIntent();
         deviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
         serviceUuid = intent.getStringExtra(EXTRAS_SENSOR_UUID);
-        fromAdvertisement = intent.getBooleanExtra(EXTRAS_FROM_ADVERTISEMENT, false);
+        fromAdvertisement = options.getBoolean(Options.PREF_USE_ADVERTISED, true) && intent.getBooleanExtra(EXTRAS_FROM_ADVERTISEMENT, false);
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         if (fromAdvertisement) {
@@ -133,6 +139,7 @@ public abstract class DemoSensorActivity extends Activity {
         //getActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     protected void onResume() {
         super.onResume();
@@ -146,7 +153,12 @@ public abstract class DemoSensorActivity extends Activity {
             scanner.startScan(filters, settings, mLeScanCallback);
         }
         else {
-            registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
+            if (Build.VERSION.SDK_INT >= 33) {
+                registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter(), RECEIVER_NOT_EXPORTED);
+            }
+            else {
+                registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
+            }
             if (bleService != null) {
                 final boolean result = bleService.connect(deviceAddress);
                 Log.v("hrshow", "Connect request result=" + result);
@@ -156,6 +168,7 @@ public abstract class DemoSensorActivity extends Activity {
         }
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     protected void onPause() {
         super.onPause();

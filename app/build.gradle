@@ -2,14 +2,14 @@ apply plugin: 'com.android.application'
 
 android {
     //noinspection GradleCompatible
-    compileSdkVersion 30
+    compileSdkVersion 34
     buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "mobi.omegacentauri.giantheart"
         minSdkVersion 21
         //noinspection ExpiredTargetSdkVersion
-        targetSdkVersion 31
+        targetSdkVersion 34
     }
 
     lintOptions {

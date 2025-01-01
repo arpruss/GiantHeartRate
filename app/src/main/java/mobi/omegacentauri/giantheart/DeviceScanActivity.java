@@ -17,6 +17,7 @@
 package mobi.omegacentauri.giantheart;
 
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
@@ -25,7 +26,9 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -47,6 +50,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 import mobi.omegacentauri.giantheart.adapters.BleDevicesAdapter;
 import mobi.omegacentauri.giantheart.display.HeartRateActivity;
@@ -79,7 +83,7 @@ public class DeviceScanActivity extends ListActivity {
     }
 
     boolean haveLocationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && Build.VERSION.SDK_INT < 31) {
             return PackageManager.PERMISSION_GRANTED == checkSelfPermission("android.permission.ACCESS_FINE_LOCATION");
         }
         else {
@@ -136,6 +140,7 @@ public class DeviceScanActivity extends ListActivity {
                 for (String p : pp)
                     Log.v("heart", "requesting permissions "+p);
                 requestPermissions(pp, 0);
+                return;
             }
         }
 
@@ -224,6 +229,7 @@ public class DeviceScanActivity extends ListActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     protected void onPause() {
         super.onPause();
@@ -354,6 +360,7 @@ public class DeviceScanActivity extends ListActivity {
     }
 
 
+    @SuppressLint("MissingPermission")
     private void init() {
         if (leDeviceListAdapter == null) {
             leDeviceListAdapter = new BleDevicesAdapter(getBaseContext());
@@ -365,8 +372,14 @@ public class DeviceScanActivity extends ListActivity {
             scanner = bluetoothAdapter.getBluetoothLeScanner();
         }
 
-        if (scanner != null)
-            scanner.startScan(mLeScanCallback);
+        if (scanner != null) {
+            ScanSettings settings = new ScanSettings.Builder()
+                    .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                    .build();
+            List<ScanFilter> filters = new ArrayList<ScanFilter>();
+            scanner.startScan(filters, settings, mLeScanCallback);
+//            scanner.startScan(mLeScanCallback);
+        }
 
         invalidateOptionsMenu();
     }
