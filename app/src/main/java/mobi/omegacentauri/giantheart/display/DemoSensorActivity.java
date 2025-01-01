@@ -61,8 +61,9 @@ public abstract class DemoSensorActivity extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
+            Log.v("hrShow", "action: "+action);
             if (BleService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                Log.e("hrshow", "disconnected");
+                Log.e("hrShow", "disconnected");
                 bleService.connect(deviceAddress);
             } else if (BleService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 final BleSensor<?> sensor = BleSensors.getSensor(serviceUuid);
@@ -78,6 +79,7 @@ public abstract class DemoSensorActivity extends Activity {
     private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
+            Log.v("hrshow", "onServiceConnected");
             bleService = ((BleService.LocalBinder) service).getService();
             if (!bleService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
@@ -156,14 +158,15 @@ public abstract class DemoSensorActivity extends Activity {
         }
         else {
             if (Build.VERSION.SDK_INT >= 33) {
-                registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter(), RECEIVER_NOT_EXPORTED);
+                Log.v("hrShow", "registering 33");
+                registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter(), RECEIVER_EXPORTED);
             }
             else {
                 registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
             }
             if (bleService != null) {
                 final boolean result = bleService.connect(deviceAddress);
-                Log.v("hrshow", "Connect request result=" + result);
+                Log.v("hrShow", "Connect request result=" + result);
             } else {
                 Log.e("hrShow", "null bleService");
             }

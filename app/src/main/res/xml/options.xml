@@ -19,10 +19,15 @@
             android:entries="@array/formula_labels"
             android:entryValues="@array/formulas"
             />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Connection and display">
+        <CheckBoxPreference android:title="Keep screen on when active"
+            android:key="screenOn"
+            android:defaultValue="false"/>
         <CheckBoxPreference android:title="Use broadcast data if possible"
             android:key="useAdvertised"
             android:defaultValue="true"
-            android:summary="On some devices (e.g., some MiBands) you can get heart rate data without connecting, as the device broadcasts heart rate either all the time or in workout mode. On those devices, don't connect, just get the broadcast heart rate."
+            android:summary="On some devices (e.g., some MiBands) you can get heart rate data without connecting, as the device broadcasts heart rate either all the time or in workout mode."
             />
     </PreferenceCategory>
     <PreferenceCategory android:title="Licenses and Copyrights">

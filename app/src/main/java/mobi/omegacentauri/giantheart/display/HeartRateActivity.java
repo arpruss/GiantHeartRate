@@ -55,7 +55,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.heart);
 		getActionBar().hide();
-		if (options.getBoolean(Options.PREF_SCREEN_ON, true))
+		if (options.getBoolean(Options.PREF_SCREEN_ON, false))
 			getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		else
 			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -226,6 +226,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 			setColor(Color.BLACK, Color.WHITE);
 			return;
 		}
+		//TODO
 		double age = Year.now().getValue() - Integer.parseInt(options.getString(Options.PREF_BIRTH_YEAR, "1984"));
 		double maxHR = 220-age;
 		if (formula.equals(Options.PREF_FORMULA_TANAKA))
@@ -308,6 +309,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 
     public void onBluetoothClick(View view) {
 		updateCache(false);
+		finish();
 		final Intent i = new Intent();
 		i.setClass(this, DeviceScanActivity.class);
 		startActivity(i);

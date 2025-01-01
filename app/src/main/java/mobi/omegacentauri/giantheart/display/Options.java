@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.Year;
+import java.util.Calendar;
 
 public class Options extends PreferenceActivity {
     public static final String PREF_SCREEN_ON = "screenOn";
@@ -132,7 +133,8 @@ public class Options extends PreferenceActivity {
         scanPreferences(getPreferenceScreen());
         boolean needMax = options.getBoolean(PREF_ZONE, false) || options.getBoolean(PREF_WARN_MAXIMUM, false);
         ListPreference birthYear = (ListPreference)findPreference(PREF_BIRTH_YEAR);
-        int now = Year.now().getValue();
+
+        int now = Calendar.getInstance().get(Calendar.YEAR);
         CharSequence years[] = new CharSequence[120];
         for (int i = 0 ; i < 120 ; i++) {
             years[i] = "" + (now - 119 + i);

@@ -265,7 +265,7 @@ public class DeviceServicesActivity extends Activity {
     protected void onResume() {
         super.onResume();
         if (Build.VERSION.SDK_INT >= 33) {
-            registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter(), RECEIVER_NOT_EXPORTED);
+            registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter(), RECEIVER_EXPORTED);
         }
         else {
             registerReceiver(gattUpdateReceiver, makeGattUpdateIntentFilter());
