@@ -1,7 +1,9 @@
 package mobi.omegacentauri.giantheart.display;
 
+import mobi.omegacentauri.giantheart.BleAdvertisementData;
 import mobi.omegacentauri.giantheart.BleService;
 import mobi.omegacentauri.giantheart.DeviceScanActivity;
+import mobi.omegacentauri.giantheart.HeartRateAdvertisementData;
 import mobi.omegacentauri.giantheart.sensor.BleSensor;
 import mobi.omegacentauri.giantheart.sensor.BleSensors;
 
@@ -108,8 +110,8 @@ public abstract class DemoSensorActivity extends Activity {
             final int rssi = result.getRssi();
             final BluetoothDevice device = result.getDevice();
             if (device.getAddress().equals(deviceAddress)) {
-                byte[] scanRecord = result.getScanRecord().getBytes();
-                int hr = DeviceScanActivity.getHeartRate(scanRecord);
+                int hr = HeartRateAdvertisementData.getHeartRate(
+                        BleAdvertisementData.toList(result.getScanRecord()));
                 onDataReceived(hr);
             }
         }

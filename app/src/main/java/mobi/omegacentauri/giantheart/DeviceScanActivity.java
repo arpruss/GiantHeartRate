@@ -69,9 +69,8 @@ public class DeviceScanActivity extends ListActivity {
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner scanner;
     private SharedPreferences options;
-    private static final int MIBAND_SERVICE = 0xFEE0;
-    private static final int[] DESIRED_SERVICES = { MIBAND_SERVICE, 0x180D };
-    private static final int[] MIBAND_ONLY = { MIBAND_SERVICE };
+    private static final int[] DESIRED_SERVICES = { HeartRateAdvertisementData.MIBAND_SERVICE, HeartRateAdvertisementData.HEART_RATE_SERVICE };
+//    private static final int[] MIBAND_ONLY = { HeartRateAdvertisementData.MIBAND_SERVICE };
 
     boolean haveScanPermission() {
         if (Build.VERSION.SDK_INT >= 31) {
@@ -201,6 +200,7 @@ public class DeviceScanActivity extends ListActivity {
         return true;
     }
 
+    @SuppressLint("MissingPermission")
     @Override
     protected void onResume() {
         super.onResume();
@@ -328,8 +328,8 @@ public class DeviceScanActivity extends ListActivity {
         return 0;
     }
 
-    public static int getHeartRate(byte[] advertisementData) {
-        if (0 == haveService(advertisementData, MIBAND_ONLY))
+/*    public static int getHeartRate(byte[] advertisementData) {
+        if (0 == haveService(advertisementData, HeartRateAdvertisementData.MIBAND_ONLY))
             return 0;
         for (int i = 0 ; i + 1 < advertisementData.length ; ) {
             int length = advertisementData[i] & 0xFF;
@@ -358,7 +358,7 @@ public class DeviceScanActivity extends ListActivity {
         }
         return 0;
     }
-
+*/
 
     @SuppressLint("MissingPermission")
     private void init() {
@@ -391,10 +391,11 @@ public class DeviceScanActivity extends ListActivity {
             super.onScanResult(callbackType, result);
             final int rssi = result.getRssi();
             final BluetoothDevice device = result.getDevice();
-            byte[] scanRecord = result.getScanRecord().getBytes();
-            int service = haveService(scanRecord, DESIRED_SERVICES);
+            List <BleAdvertisementData.BleAdvertisementItem> adv =
+                    BleAdvertisementData.toList(result.getScanRecord());
+            int service = HeartRateAdvertisementData.findService(adv, DESIRED_SERVICES);
             if (0 != service) {
-                int hr = getHeartRate(scanRecord);
+                int hr = HeartRateAdvertisementData.getHeartRate(adv);
                 leDeviceListAdapter.addDevice(device, rssi, true, hr);
                 leDeviceListAdapter.notifyDataSetChanged();
             }

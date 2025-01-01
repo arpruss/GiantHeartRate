@@ -1,15 +1,30 @@
 package mobi.omegacentauri.giantheart;
 
+import android.bluetooth.le.ScanRecord;
+import android.util.Log;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 public class BleAdvertisementData implements Iterable<BleAdvertisementData.BleAdvertisementItem> {
     byte[] data;
+    static final byte[] empty = new byte[0];
     int position;
 
     public BleAdvertisementData(byte[] _data) {
         data = _data;
         position = 0;
+    }
+
+    public static List<BleAdvertisementItem> toList(ScanRecord scanRecord) {
+        BleAdvertisementData d = new BleAdvertisementData(scanRecord.getBytes());
+        List <BleAdvertisementItem> l = new ArrayList<BleAdvertisementItem>();
+        for (BleAdvertisementItem item : d) {
+            l.add(item);
+        }
+        return l;
     }
 
     @Override
@@ -18,18 +33,19 @@ public class BleAdvertisementData implements Iterable<BleAdvertisementData.BleAd
 
             @Override
             public boolean hasNext() {
-                return position < data.length && (data[position] & 0xFF) + position + 1 < data.length;
+                return position+1 < data.length && data[position] != 0; // && (data[position] & 0xFF) + position + 1 < data.length;
             }
 
             @Override
             public BleAdvertisementItem next() {
-                if (position >= data.length)
-                    return null;
-                int length = data[position]  & 0xFF;
+                int length = data[position] & 0xFF;
                 position++;
-                if (position + length > data.length)
-                    return null;
-                BleAdvertisementItem item = new BleAdvertisementItem(data[position] & 0xFF,
+                int type = data[position] & 0xFF;
+                length--;
+                position++;
+                if (position+length>data.length)
+                    length = data.length - position;
+                BleAdvertisementItem item = new BleAdvertisementItem(type,
                         Arrays.copyOfRange(data, position, position + length));
                 position += length;
                 return item;
