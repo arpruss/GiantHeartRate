@@ -69,7 +69,7 @@ public class DeviceScanActivity extends ListActivity {
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner scanner;
     private SharedPreferences options;
-    private static final int[] DESIRED_SERVICES = { HeartRateAdvertisementData.MIBAND_SERVICE, HeartRateAdvertisementData.HEART_RATE_SERVICE };
+    private static final int[] DESIRED_SERVICES = { HeartRateAdvertisementData.MIBAND_MANUFACTURER, HeartRateAdvertisementData.HEART_RATE_SERVICE };
 //    private static final int[] MIBAND_ONLY = { HeartRateAdvertisementData.MIBAND_SERVICE };
 
     boolean haveScanPermission() {
@@ -395,6 +395,7 @@ public class DeviceScanActivity extends ListActivity {
                     BleAdvertisementData.toList(result.getScanRecord());
             int service = HeartRateAdvertisementData.findService(adv, DESIRED_SERVICES);
             if (0 != service) {
+//                adv = BleAdvertisementData.toList(new byte[] {0x0E, (byte)0xFF, 0x6b, 0x00, 0x72, 0x06, 0x7f, 0x44, 0x37, 0x00, 0x00, 0x00, 0x33, 0x00, 0x3c});
                 int hr = HeartRateAdvertisementData.getHeartRate(adv);
                 leDeviceListAdapter.addDevice(device, rssi, true, hr);
                 leDeviceListAdapter.notifyDataSetChanged();

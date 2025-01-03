@@ -18,13 +18,18 @@ public class BleAdvertisementData implements Iterable<BleAdvertisementData.BleAd
         position = 0;
     }
 
-    public static List<BleAdvertisementItem> toList(ScanRecord scanRecord) {
-        BleAdvertisementData d = new BleAdvertisementData(scanRecord.getBytes());
+    public static List<BleAdvertisementItem> toList(byte[] data) {
+        BleAdvertisementData d = new BleAdvertisementData(data);
         List <BleAdvertisementItem> l = new ArrayList<BleAdvertisementItem>();
         for (BleAdvertisementItem item : d) {
             l.add(item);
         }
         return l;
+
+    }
+
+    public static List<BleAdvertisementItem> toList(ScanRecord scanRecord) {
+        return toList(scanRecord.getBytes());
     }
 
     @Override

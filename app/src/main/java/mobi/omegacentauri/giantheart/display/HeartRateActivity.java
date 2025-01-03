@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 
 import java.time.Year;
+import java.util.Calendar;
 
 import mobi.omegacentauri.giantheart.DeviceScanActivity;
 import mobi.omegacentauri.giantheart.R;
@@ -226,8 +227,7 @@ public class HeartRateActivity extends DemoSensorActivity {
 			setColor(Color.BLACK, Color.WHITE);
 			return;
 		}
-		//TODO
-		double age = Year.now().getValue() - Integer.parseInt(options.getString(Options.PREF_BIRTH_YEAR, "1984"));
+		double age = Calendar.getInstance().get(Calendar.YEAR) - Integer.parseInt(options.getString(Options.PREF_BIRTH_YEAR, "1984"));
 		double maxHR = 220-age;
 		if (formula.equals(Options.PREF_FORMULA_TANAKA))
 			maxHR = 208 - 0.7 * age;
