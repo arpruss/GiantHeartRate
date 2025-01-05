@@ -69,6 +69,8 @@ public class DeviceScanActivity extends ListActivity {
     private BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner scanner;
     private SharedPreferences options;
+
+    boolean havePermissions = false;
     private static final int[] DESIRED_SERVICES = { HeartRateAdvertisementData.MIBAND_MANUFACTURER, HeartRateAdvertisementData.HEART_RATE_SERVICE };
 //    private static final int[] MIBAND_ONLY = { HeartRateAdvertisementData.MIBAND_SERVICE };
 
@@ -99,10 +101,15 @@ public class DeviceScanActivity extends ListActivity {
         }
     }
 
+    boolean haveAllPermissions() {
+        return haveConnectPermission() && haveLocationPermission() && haveScanPermission();
+    }
+
     @Override
     public void onRequestPermissionsResult (int requestCode,
                                             String[] permissions,
                                             int[] grantResults) {
+        boolean haveAll = true;
         for (int i=0; i<permissions.length; i++) {
             if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -111,6 +118,10 @@ public class DeviceScanActivity extends ListActivity {
                     finish();
                 }
             }
+        }
+
+        if (haveAllPermissions()) {
+            getBluetoothAdapter();
         }
     }
     @Override
@@ -143,7 +154,7 @@ public class DeviceScanActivity extends ListActivity {
             }
         }
 
-        if (l && c) {
+        if (l && s && c) {
             String oldAddress = options.getString(Options.PREF_DEVICE_ADDRESS, "");
             if (oldAddress.length() > 0) {
                 String oldService = options.getString(Options.PREF_SERVICE, "");
@@ -164,6 +175,14 @@ public class DeviceScanActivity extends ListActivity {
             return;
         }
 
+        getBluetoothAdapter();
+    }
+
+    private void getBluetoothAdapter() {
+        if (!haveAllPermissions()) {
+            bluetoothAdapter = null;
+            return;
+        }
         // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
         // BluetoothAdapter through BluetoothManager.
         final BluetoothManager bluetoothManager =
@@ -204,6 +223,9 @@ public class DeviceScanActivity extends ListActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (bluetoothAdapter == null)
+            return;
 
         // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
         // fire an intent to display a dialog asking the user to grant permission to enable it.
